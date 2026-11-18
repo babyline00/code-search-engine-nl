@@ -1,0 +1,80 @@
+// Prisma schema for Code Search Engine (NL).
+// SQLite is used so the project runs with zero external services in the sandbox.
+// The DB file lives at an absolute path declared in .env / package.json db:* scripts
+// so `bun run seed`, `bun run db:push`, and `next dev` all read the same file.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Repo {
+  id            String     @id @default(cuid())
+  owner         String
+  name          String
+  url           String
+  description   String?
+  defaultBranch String     @default("main")
+  importedAt    DateTime   @default(now())
+  files         CodeFile[]
+
+  @@unique([owner, name])
+}
+
+model CodeFile {
+  id        String      @id @default(cuid())
+  repoId    String
+  repo      Repo        @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  path      String
+  language  String
+  content   String
+  lineCount Int
+  chunks    CodeChunk[]
+
+  @@index([repoId])
+  @@unique([repoId, path])
+}
+
+model CodeChunk {
+  id         String    @id @default(cuid())
+  fileId     String
+  file       CodeFile @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  repoId     String
+  repo       Repo     @relation(fields: [repoId], references: [id], onDelete: Cascade)
+  ordinal    Int
+  symbolName String?
+  startLine  Int
+  endLine    Int
+  content    String
+  tokens     String
+  embedding  String
+  language   String
+  createdAt  DateTime @default(now())
+
+  @@index([fileId])
+  @@index([repoId])
+  @@index([language])
+}
+
+model Explanation {
+  id          String   @id @default(cuid())
+  chunkId     String
+  queryHash   String
+  query       String
+  explanation String
+  createdAt   DateTime @default(now())
+
+  @@unique([chunkId, queryHash])
+}
+
+model SearchLog {
+  id           String   @id @default(cuid())
+  query        String
+  resultsCount Int
+  filters      String?
+  createdAt    DateTime @default(now())
+}

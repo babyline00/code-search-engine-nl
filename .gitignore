@@ -1,0 +1,38 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# build output
+.next
+out
+build
+dist
+
+# prisma local db + generated client
+db/*.db
+db/*.db-journal
+prisma/generated
+src/generated
+
+# misc
+.DS_Store
+*.pem
+.env
+.env.local
+.env.*.local
+
+# logs
+dev.log
+server.log
+*.log
+
+# bun
+bun.lockb
+
+# editor
+.vscode
+.idea
+
+# tests
+coverage
